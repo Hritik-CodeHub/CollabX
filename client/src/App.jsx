@@ -5,6 +5,8 @@ import Authentication from './pages/Authentication';
 import { Toaster } from "react-hot-toast";
 import { AuthProvider } from './context/AuthContext';
 import VideoMeet from './pages/VideoMeet';
+import Home from './pages/Home';
+import History from './pages/History';
 
 function App() {
 
@@ -19,8 +21,9 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/Auth" element={<Authentication />} />
-            <Route path="/home" element={<Authentication />} />
+            <Route path="/home" element={<Home />} />
             <Route path="/:url" element={<VideoMeet />} />
+            <Route path="/history" element={<History />} />
           </Routes>
         </AuthProvider>
       </Router>

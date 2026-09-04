@@ -1,15 +1,17 @@
 import { useState, useContext } from 'react';
-import { Link } from 'react-router-dom';
 import CustomInputField from '../components/common/CustomInputField';
 import api from '../axios/axios';
 import toast from "react-hot-toast";
 import { log } from "../utils/log";
 import { AuthContext } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import Logo from '../components/common/Logo';
 
 import { useForm } from 'react-hook-form';
 
 function Authentication() {
   const { setUserData } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('login');
   const { control, handleSubmit, reset } = useForm({
     mode: 'onBlur',
@@ -40,6 +42,7 @@ function Authentication() {
         if (res.status == 200) {
           toast.success(res?.data?.message);
           setUserData(res?.data?.userData, res?.data?.token);
+          navigate('/home');
         }
       } catch (error) {
         log("Login error", data, error);
@@ -58,10 +61,11 @@ function Authentication() {
         if (res.status == 200) {
           toast.success(res?.data?.message);
           setUserData(res?.data?.userData, res?.data?.token);
+          navigate('/home');
         }
       } catch (error) {
         log("Register error", data, error);
-        toast.error("Something wents wrong");
+        toast.error("Something went wrong");
       }
     }
   };
@@ -71,14 +75,14 @@ function Authentication() {
       <div className="absolute -left-32 top-24 h-80 w-80 rounded-full border border-[#caeeea]" />
       <div className="absolute -right-28 -bottom-22.5 h-96 w-96 rounded-full border border-[#d8f2ef]" />
 
-      <section className="relative w-full max-w-110" aria-labelledby="authentication-title">
-        <Link className="mx-auto mb-8 flex w-fit items-center text-2xl font-extrabold tracking-tight" to="/" aria-label="CollabX home">
-          Collab<span className="text-primary">X</span>
-        </Link>
+      <section className="relative w-full max-w-110">
+        <div className="mx-auto mb-8 flex w-fit items-center text-2xl font-extrabold tracking-tight" to="/" aria-label="CollabX home">
+          <Logo/>
+        </div>
 
         <div className="rounded-[26px] border border-white/80 bg-white/90 p-6 shadow-[0_24px_70px_#1736531a] backdrop-blur sm:p-8">
           <div className="mb-7 text-center">
-            <h1 className="text-3xl font-extrabold tracking-[-0.04em]" id="authentication-title">{activeTab === 'login' ? 'Welcome back' : 'Create your account'}</h1>
+            <h1 className="text-3xl font-extrabold tracking-[-0.04em]" >{activeTab === 'login' ? 'Welcome back' : 'Create your account'}</h1>
             <p className="mt-2 text-sm leading-relaxed text-secondary-muted">{activeTab === 'login' ? 'Log in to continue collaborating with your team.' : 'Start bringing your team closer today.'}</p>
           </div>
 
@@ -123,15 +127,28 @@ function Authentication() {
               control={control}
               rules={{ required: 'Password is required' }}
             />
-            {activeTab === 'login' && <div className="-mt-1 text-right"><button className="text-xs font-bold text-primary-link hover:text-primary-hover" type="button">Forgot password?</button></div>}
-            <button className="mt-2 h-12 w-full rounded-xl bg-primary text-sm font-bold text-white shadow-[0_10px_22px_#20c7bb42] transition hover:-translate-y-0.5 hover:bg-primary-hover focus:outline-none focus:ring-4 focus:ring-primary/25" type="submit">
-              {activeTab === 'login' ? 'Log in to CollabX' : 'Create account'} <span className="ml-1">→</span>
+            {activeTab === 'login' &&
+              <div className="-mt-1 text-right">
+                <button
+                  className="text-xs font-bold text-primary-link hover:text-primary-hover"
+                  type="button"
+                >Forgot password?
+                </button>
+              </div>}
+            <button
+              className="mt-2 h-12 w-full rounded-xl bg-primary text-sm font-bold text-white shadow-[0_10px_22px_#20c7bb42] transition hover:-translate-y-0.5 hover:bg-primary-hover focus:outline-none focus:ring-4 focus:ring-primary/25"
+              type="submit">
+              {activeTab === 'login' ? 'Log in to CollabX' : 'Create account'}
+              <span className="ml-1">→</span>
             </button>
           </form>
 
           <p className="mt-7 text-center text-sm text-[#748494]">
             {activeTab === 'login' ? 'New to CollabX?' : 'Already have an account?'}{' '}
-            <button className="font-bold text-primary-link hover:text-primary-hover" type="button" onClick={() => toggleLogin(activeTab === 'login' ? 'register' : 'login')}>
+            <button
+              className="font-bold text-primary-link hover:text-primary-hover" type="button"
+              onClick={() => toggleLogin(activeTab === 'login' ? 'register' : 'login')}
+            >
               {activeTab === 'login' ? 'Create an account' : 'Log in'}
             </button>
           </p>

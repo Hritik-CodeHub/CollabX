@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState, useMemo } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { generateMeetingCode } from '../utils/common';
@@ -7,6 +7,8 @@ import { log } from '../utils/log';
 import toast from 'react-hot-toast';
 import { formatDate } from '../utils/format';
 import Logo from '../components/common/Logo';
+import useDebounce from '../hooks/useDebounce';
+
 import {
   ArrowBack,
   CalendarToday,
@@ -60,11 +62,15 @@ function History() {
     }
   };
 
+  const debouncedSearch = useDebounce((searchValue) => {
+    fetchHistory(searchValue);
+  }, 500);
+
   useEffect(() => {
     if (user) {
       fetchHistory();
     }
-  }, [search]);
+  }, [user]);
 
   const logout = () => {
     clearUserData();
@@ -132,7 +138,7 @@ function History() {
 
       {/* Header */}
       <header className="relative mx-auto flex h-20 max-w-350 items-center justify-between px-5 sm:px-8 lg:px-12" aria-label="Application header">
-        <Logo/>
+        <Logo />
         <nav className="flex items-center gap-2 sm:gap-4" aria-label="Account navigation">
           <Link
             to="/home"
@@ -198,14 +204,21 @@ function History() {
             <input
               type="text"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSearch(val);
+                debouncedSearch(val);
+              }}
               placeholder="Search by meeting code or date..."
               className="h-11 w-full rounded-xl border border-[#dce8e6] bg-white pl-10 pr-4 text-sm font-medium text-secondary-foreground placeholder-[#98a4b3] shadow-xs outline-none transition focus:border-primary focus:ring-3 focus:ring-primary/20"
             />
             {search && (
               <button
                 type="button"
-                onClick={() => setSearch('')}
+                onClick={() => {
+                  setSearch('');
+                  fetchHistory('');
+                }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#8b95a5] hover:text-secondary-foreground"
               >
                 Clear

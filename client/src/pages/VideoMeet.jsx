@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, useContext } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import io from "socket.io-client";
-import { Videocam, VideocamOff, Mic, MicOff, ScreenShare, StopScreenShare, Chat, MoreVert, KeyboardArrowDown, Settings, PhoneDisabled, MeetingRoom, CloseFullscreen, Person, VideoCameraFront } from '@mui/icons-material';
+import { Videocam, VideocamOff, Mic, MicOff, ScreenShare, StopScreenShare, Chat, MoreVert, KeyboardArrowDown, Settings, PhoneDisabled, MeetingRoom, CloseFullscreen, Person, VideoCameraFront, InsertEmoticon } from '@mui/icons-material';
 import api from "../axios/axios";
 import { log } from "../utils/log";
 import { AuthContext } from '../context/AuthContext';
+import { formatMessageTime } from "../utils/format";
+import { emojiOptions } from "../constants/emoji.constant";
 
 const VideoMeet = () => {
 
@@ -25,10 +27,13 @@ const VideoMeet = () => {
     const [audio, setAudio] = useState(true);
     const [screen, setScreen] = useState();
     const [screenAvailable, setScreenAvailable] = useState();
-    const [message, setMessage] = useState([]);
-    const [newMessage, setNewMessage] = useState();
+    const [message, setMessage] = useState("");
+    const [messages, setMessages] = useState([]);
+    const [newMessage, setNewMessage] = useState(0);
     const [username, setUsername] = useState();
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const videoRef = useRef([]);
+    const messagesEndRef = useRef(null);
     const [videos, setVideos] = useState([]);
     const [askedForUserName, setAskedForUserName] = useState(true);
     const [chatModalOpen, setChatModalOpen] = useState(false);
@@ -68,9 +73,14 @@ const VideoMeet = () => {
         }
     }
 
-    const addMessage = () => {
+    const addMessage = (data, sender, socketIdSender, time) => {
+        setMessages((prevMessages) => [...prevMessages, { sender: sender, data: data, time }]);
 
+        if (socketIdSender !== socketIdRef.current) {
+            setNewMessage((prevMessages) => prevMessages + 1);
+        }
     }
+
     const server_url = "http://localhost:3000";
     const peerConfigConnections = {
         iceServers: [
@@ -432,8 +442,18 @@ const VideoMeet = () => {
     }
 
     const handleOpenChatModal = () => {
-        setChatModalOpen(!chatModalOpen);
+        setChatModalOpen((prevOpen) => {
+            const nextOpen = !prevOpen;
+            if (nextOpen) {
+                setNewMessage(0);
+            }
+            return nextOpen;
+        });
     }
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages, chatModalOpen]);
 
     useEffect(() => {
         if (screen !== undefined) {
@@ -452,8 +472,18 @@ const VideoMeet = () => {
         setScreen(!screen);
     }
     const sendMessage = () => {
+        const trimmedMessage = message.trim();
 
+        if (!trimmedMessage || !socketRef.current) {
+            return;
+        }
+
+        socketRef.current.emit("chat-message", trimmedMessage, username || user?.name || "You");
+        setMessage("");
+        setShowEmojiPicker(false);
     }
+
+    
 
     const iconButtonClass = "grid size-10 place-items-center rounded-full bg-slate-100 text-slate-800 transition hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2";
 
@@ -613,13 +643,112 @@ const VideoMeet = () => {
             ) : (
                 <div className="min-h-screen overflow-hidden bg-[#111315] p-4 pb-28 text-white sm:p-6 sm:pb-28">
 
-                    {chatModalOpen &&
-                        <aside className="fixed right-5 top-5 z-20 w-72 rounded-xl p-5 shadow-xl">
-                            <h2 className="text-lg font-medium">Chat</h2>
-                            <input type="text" />
-                            <button>Send</button>
+                    {chatModalOpen && (
+                        <aside className="fixed right-4 top-4 z-20 h-[calc(100vh-2rem)] w-[min(22rem,calc(100vw-2rem))] overflow-hidden  border border-white/10 bg-[#1a1d21]/95 shadow-[0_24px_80px_rgba(0,0,0,0.45)] backdrop-blur-md">
+                            <div className="flex h-full flex-col">
+                                <div className="flex items-center justify-between border-b border-white/10 bg-white/5 px-4 py-3">
+                                    <div>
+                                        <h2 className="text-base font-semibold text-white">Chat</h2>
+                                        <p className="text-[11px] text-slate-400">{messages.length} messages</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleOpenChatModal}
+                                        className="grid size-8 place-items-center rounded-full bg-white/5 text-slate-200 transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        aria-label="Close chat"
+                                    >
+                                        <CloseFullscreen className="!text-base" />
+                                    </button>
+                                </div>
+
+                                <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
+                                    {messages.length === 0 ? (
+                                        <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-700 bg-slate-900/40 p-4 text-center text-sm text-slate-400">
+                                            Start the conversation with your team.
+                                        </div>
+                                    ) : (
+                                        messages.map((msg, index) => {
+                                            const isCurrentUser = msg.sender === (username || user?.name || "You");
+
+                                            return (
+                                                <div
+                                                    key={`${msg.sender}-${index}-${msg.data}`}
+                                                    className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
+                                                >
+                                                    <div
+                                                        className={`max-w-[85%] rounded-2xl px-3 py-2 shadow-sm ${
+                                                            isCurrentUser
+                                                                ? 'bg-blue-600 text-white'
+                                                                : 'bg-slate-800 text-slate-100'
+                                                        }`}
+                                                    >
+                                                        <div className="mb-1 flex items-center justify-between gap-3 text-[10px] font-medium uppercase tracking-wide opacity-80">
+                                                            <span>{msg.sender}</span>
+                                                            <span>{formatMessageTime(msg.time)}</span>
+                                                        </div>
+                                                        <p className="break-words text-sm leading-relaxed">{msg.data}</p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                    <div ref={messagesEndRef} />
+                                </div>
+
+                                <div className="border-t border-white/10 bg-[#121518] p-3">
+                                    {showEmojiPicker && (
+                                        <div className="mb-2 flex flex-wrap gap-2 rounded-2xl border border-slate-700 bg-slate-900/80 p-2">
+                                            {emojiOptions.map((emoji) => (
+                                                <button
+                                                    key={emoji}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setMessage((prevMessage) => `${prevMessage}${emoji}`);
+                                                        setShowEmojiPicker(false);
+                                                    }}
+                                                    className="grid size-9 place-items-center rounded-xl bg-slate-800 text-lg transition hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    aria-label={`Insert emoji ${emoji}`}
+                                                >
+                                                    {emoji}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-center gap-2 rounded-2xl border border-slate-700 bg-slate-900/80 px-3 py-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowEmojiPicker((prev) => !prev)}
+                                            className="grid size-8 place-items-center rounded-full bg-slate-800 text-slate-200 transition hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            aria-label="Open emoji picker"
+                                        >
+                                            <InsertEmoticon className="text-base!" />
+                                        </button>
+                                        <input
+                                            type="text"
+                                            value={message}
+                                            onChange={(e) => setMessage(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    sendMessage();
+                                                }
+                                            }}
+                                            placeholder="Type a message"
+                                            className="flex-1 border-0 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={sendMessage}
+                                            disabled={!message.trim()}
+                                            className="inline-flex h-9 items-center justify-center rounded-xl bg-blue-600 px-3 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-slate-700"
+                                        >
+                                            Send
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </aside>
-                    }
+                    )}
 
                     <header className="flex items-center justify-between px-1 text-sm font-medium text-slate-100 sm:text-base">
                         <span>CollabX</span><span className="text-xs font-normal text-slate-400">{videos.length + 1} in call</span>

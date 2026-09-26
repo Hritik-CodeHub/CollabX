@@ -6,7 +6,6 @@ import { Meeting } from '../models/meeting.model.js';
 
 const register = async (req, res) => {
     const { name, email, password } = req.body;
-    console.log("register user data:", req.body);
     try {
         const existingUser = await User.findOne({ email });
         if (existingUser) {

@@ -39,4 +39,16 @@
     }
   };
 
-  export { formatDate };
+  const formatMessageTime = (time) => {
+        if (!time) return 'Now';
+
+        const parsedTime = new Date(time);
+
+        if (Number.isNaN(parsedTime.getTime())) {
+            return 'Now';
+        }
+
+        return parsedTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+  export { formatDate, formatMessageTime };

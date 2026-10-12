@@ -33,13 +33,6 @@ function History() {
   const [search, setSearch] = useState('');
   const [copiedCode, setCopiedCode] = useState(null);
 
-  // Redirect unauthenticated users
-  useEffect(() => {
-    if (!user) {
-      navigate('/Auth');
-    }
-  }, [user, navigate]);
-
   const fetchHistory = async (searchValue = search) => {
     setLoading(true);
     try {
@@ -74,7 +67,7 @@ function History() {
 
   const logout = () => {
     clearUserData();
-    navigate('/Auth');
+    navigate('/auth');
   };
 
   const copyCode = (code) => {

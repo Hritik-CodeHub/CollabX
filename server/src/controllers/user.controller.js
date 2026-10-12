@@ -65,11 +65,15 @@ const login = async (req, res) => {
                 token,
                 message: "login successfully"
             })
+        } else {
+            return res.status(httpStatus.BAD_REQUEST).json({
+                message: "please enter correct password. "
+            })
         }
     } catch (error) {
         console.log("login error :", error)
         return res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
-            message: ` something went worng ${error}`
+            message: `something went worng`
         })
     }
 }
@@ -90,7 +94,7 @@ const createMeeting = async (req, res) => {
     } catch (error) {
         console.log("createMeeting error:", error);
         res.status(httpStatus.INTERNAL_SERVER_ERROR).json({
-            message: `Something went wrong: ${error.message}`
+            message: `Something went wrong`
         });
     }
 }

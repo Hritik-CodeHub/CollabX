@@ -46,7 +46,7 @@ function Authentication() {
         }
       } catch (error) {
         log("Login error", data, error);
-        toast.error("Something went wrong");
+        toast.error(error?.response?.data?.message || "Something went wrong");
       }
 
     } else {
@@ -65,7 +65,7 @@ function Authentication() {
         }
       } catch (error) {
         log("Register error", data, error);
-        toast.error("Something went wrong");
+        toast.error(error?.response?.data?.message || "Something went wrong");
       }
     }
   };
@@ -77,7 +77,7 @@ function Authentication() {
 
       <section className="relative w-full max-w-110">
         <div className="mx-auto mb-8 flex w-fit items-center text-2xl font-extrabold tracking-tight" to="/" aria-label="CollabX home">
-          <Logo/>
+          <Logo />
         </div>
 
         <div className="rounded-[26px] border border-white/80 bg-white/90 p-6 shadow-[0_24px_70px_#1736531a] backdrop-blur sm:p-8">

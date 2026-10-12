@@ -6,7 +6,7 @@ import api from "../axios/axios";
 import { log } from "../utils/log";
 import { AuthContext } from '../context/AuthContext';
 import { formatMessageTime } from "../utils/format";
-import { emojiOptions } from "../constants/emoji.constant";
+import EmojiPicker from "../components/common/EmojiPicker";
 
 const VideoMeet = () => {
 
@@ -96,11 +96,8 @@ const VideoMeet = () => {
     const connectToSocketServer = () => {
         socketRef.current = io.connect(server_url, { secure: false });
 
-        console.log("socketRef.current", socketRef.current);
-
         socketRef.current.on('signal', gotMessageFromServer);
         socketRef.current.on("connect", () => {
-            console.log("connected to socket server");
             socketRef.current.emit("join-call", window.location.href);
             socketIdRef.current = socketRef.current.id;
             socketRef.current.on("chat-message", addMessage);
@@ -696,24 +693,13 @@ const VideoMeet = () => {
                                 </div>
 
                                 <div className="border-t border-white/10 bg-[#121518] p-3">
-                                    {showEmojiPicker && (
-                                        <div className="mb-2 flex flex-wrap gap-2 rounded-2xl border border-slate-700 bg-slate-900/80 p-2">
-                                            {emojiOptions.map((emoji) => (
-                                                <button
-                                                    key={emoji}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setMessage((prevMessage) => `${prevMessage}${emoji}`);
-                                                        setShowEmojiPicker(false);
-                                                    }}
-                                                    className="grid size-9 place-items-center rounded-xl bg-slate-800 text-lg transition hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    aria-label={`Insert emoji ${emoji}`}
-                                                >
-                                                    {emoji}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
+                                    <EmojiPicker
+                                        visible={showEmojiPicker}
+                                        onSelect={(emoji) => {
+                                            setMessage((prevMessage) => `${prevMessage}${emoji}`);
+                                        }}
+                                        onClose={() => setShowEmojiPicker(false)}
+                                    />
 
                                     <div className="flex items-center gap-2 rounded-2xl border border-slate-700 bg-slate-900/80 px-3 py-2">
                                         <button

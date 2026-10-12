@@ -2,16 +2,35 @@ import { Link } from 'react-router-dom';
 import { SVG } from '../constants/SVG';
 import { ATTENDEES } from '../constants/landingPage.constant';
 import Logo from '../components/common/Logo';
+import { AuthContext } from '../context/AuthContext';
+import { useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 
 function LandingPage() {
+  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+
+  
+  const handleLogin = () => {
+    if (user) {
+      navigate("/home");
+    } else {
+      navigate("/auth");
+    }
+  }
+
   return (
     <main className="min-h-screen overflow-hidden bg-[radial-gradient(circle_at_50%_28%,#e8fbf8_0,#f8fbfa_33%,#fff_68%)] font-sans text-secondary-foreground">
 
       <nav className="mx-auto flex h-17.5 bg-gray-200  px-4 items-center justify-between" aria-label="Main navigation">
         <Logo />
-        <div className="flex items-center gap-8 text-sm font-semibold text-[#3c506a]">
-          <Link className="rounded-full bg-primary px-5 py-2.5 text-white shadow-[0_9px_20px_#20c7bb42] transition hover:-translate-y-0.5 hover:bg-primary-hover" to="/auth">Log in</Link>
-        </div>
+        <button
+          className="rounded-full bg-primary px-5 py-2.5 text-white shadow-[0_9px_20px_#20c7bb42] transition hover:-translate-y-0.5 hover:bg-primary-hover"
+          onClick={handleLogin}
+        >
+          Log in
+        </button>
       </nav>
 
       <section className="px-6 pt-8.5 text-center md:pt-18.5" id="top">

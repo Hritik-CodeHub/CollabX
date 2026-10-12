@@ -38,7 +38,7 @@ function Home() {
 
   const logout = () => {
     clearUserData();
-    navigate('/Auth');
+    navigate('/auth');
   };
 
   return (

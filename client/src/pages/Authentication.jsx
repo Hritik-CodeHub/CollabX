@@ -6,6 +6,7 @@ import { log } from "../utils/log";
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import Logo from '../components/common/Logo';
+import Loader from '../components/loader/Loader';
 
 import { useForm } from 'react-hook-form';
 
@@ -13,6 +14,7 @@ function Authentication() {
   const { setUserData } = useContext(AuthContext);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('login');
+  const [isLoading, setIsLoading] = useState(false);
   const { control, handleSubmit, reset } = useForm({
     mode: 'onBlur',
     defaultValues: {
@@ -34,6 +36,7 @@ function Authentication() {
   const submitForm = async (data) => {
     if (activeTab === 'login') {
       try {
+        setIsLoading(true);
         const res = await api.post('/login', {
           email: data.email,
           password: data.password,
@@ -47,10 +50,13 @@ function Authentication() {
       } catch (error) {
         log("Login error", data, error);
         toast.error(error?.response?.data?.message || "Something went wrong");
+      } finally {
+        setIsLoading(false);
       }
 
     } else {
       try {
+        setIsLoading(true);
         const res = await api.post('/register',
           {
             name: data.name,
@@ -66,6 +72,8 @@ function Authentication() {
       } catch (error) {
         log("Register error", data, error);
         toast.error(error?.response?.data?.message || "Something went wrong");
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -136,10 +144,22 @@ function Authentication() {
                 </button>
               </div>}
             <button
-              className="mt-2 h-12 w-full rounded-xl bg-primary text-sm font-bold text-white shadow-[0_10px_22px_#20c7bb42] transition hover:-translate-y-0.5 hover:bg-primary-hover focus:outline-none focus:ring-4 focus:ring-primary/25"
-              type="submit">
-              {activeTab === 'login' ? 'Log in to CollabX' : 'Create account'}
-              <span className="ml-1">→</span>
+              className="mt-2 flex h-12 w-full items-center justify-center rounded-xl bg-primary text-sm font-bold text-white shadow-[0_10px_22px_#20c7bb42] transition hover:-translate-y-0.5 hover:bg-primary-hover focus:outline-none focus:ring-4 focus:ring-primary/25 disabled:cursor-not-allowed disabled:opacity-70"
+              type="submit"
+              disabled={isLoading}
+              aria-busy={isLoading}
+            >
+              {isLoading ? (
+                <Loader
+                  className="justify-center"
+                  label={activeTab === 'login' ? 'Logging in...' : 'Creating account...'}
+                />
+              ) : (
+                <>
+                  {activeTab === 'login' ? 'Log in to CollabX' : 'Create account'}
+                  <span className="ml-1">→</span>
+                </>
+              )}
             </button>
           </form>
 

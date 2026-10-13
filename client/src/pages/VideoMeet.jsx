@@ -81,7 +81,6 @@ const VideoMeet = () => {
         }
     }
 
-    const server_url = "http://localhost:3000";
     const peerConfigConnections = {
         iceServers: [
             {
@@ -94,7 +93,7 @@ const VideoMeet = () => {
     };
 
     const connectToSocketServer = () => {
-        socketRef.current = io.connect(server_url, { secure: false });
+        socketRef.current = io.connect(import.meta.env.VITE_SOCKET_SERVER_URL, { secure: false });
 
         socketRef.current.on('signal', gotMessageFromServer);
         socketRef.current.on("connect", () => {

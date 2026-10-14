@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useContext } from "react";
+import { useCallback, useEffect, useRef, useState, useContext } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import io from "socket.io-client";
 import { Videocam, VideocamOff, Mic, MicOff, ScreenShare, StopScreenShare, Chat, MoreVert, KeyboardArrowDown, Settings, PhoneDisabled, MeetingRoom, CloseFullscreen, Person, VideoCameraFront, InsertEmoticon } from '@mui/icons-material';
@@ -16,6 +16,12 @@ const VideoMeet = () => {
     const socketRef = useRef();
     const socketIdRef = useRef();
     const localVideoRef = useRef();
+    const attachLocalVideo = useCallback((element) => {
+        localVideoRef.current = element;
+        if (element && window.localStream) {
+            element.srcObject = window.localStream;
+        }
+    }, []);
     const connectionsRef = useRef({});
     const connections = connectionsRef.current;
 
@@ -479,7 +485,7 @@ const VideoMeet = () => {
         setShowEmojiPicker(false);
     }
 
-    
+
 
     const iconButtonClass = "grid size-10 place-items-center rounded-full bg-slate-100 text-slate-800 transition hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2";
 
@@ -575,7 +581,7 @@ const VideoMeet = () => {
                             <div className="relative h-[min(58vw,346px)] min-h-65 overflow-hidden rounded-xl bg-gradient-to-b from-[#17181a] via-[#202124] to-[#111214] text-slate-100">
                                 <video
                                     className={`size-full object-cover transform-[scaleX(-1)] ${video ? '' : 'hidden'}`}
-                                    ref={localVideoRef}
+                                    ref={attachLocalVideo}
                                     autoPlay
                                     muted
                                     playsInline
@@ -672,11 +678,10 @@ const VideoMeet = () => {
                                                     className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
                                                 >
                                                     <div
-                                                        className={`max-w-[85%] rounded-2xl px-3 py-2 shadow-sm ${
-                                                            isCurrentUser
+                                                        className={`max-w-[85%] rounded-2xl px-3 py-2 shadow-sm ${isCurrentUser
                                                                 ? 'bg-blue-600 text-white'
                                                                 : 'bg-slate-800 text-slate-100'
-                                                        }`}
+                                                            }`}
                                                     >
                                                         <div className="mb-1 flex items-center justify-between gap-3 text-[10px] font-medium uppercase tracking-wide opacity-80">
                                                             <span>{msg.sender}</span>
@@ -779,7 +784,18 @@ const VideoMeet = () => {
 
                     <section className="fixed bottom-24 right-4 z-10 w-40 overflow-hidden rounded-2xl bg-[#3c2a22] shadow-2xl ring-1 ring-white/10 sm:bottom-6 sm:right-6 sm:w-64" aria-label="Your video preview">
                         <div className="relative aspect-video">
-                            <video className="size-full object-cover transform-[scaleX(-1)]" ref={localVideoRef} autoPlay muted playsInline />{!video && <div className="absolute inset-0 grid place-items-center bg-[#6e3a25]"><span className="grid size-12 place-items-center rounded-full bg-white/25 text-2xl">{(user?.name || 'Y').charAt(0).toUpperCase()}</span></div>}<span className="absolute right-2 top-2 grid size-7 place-items-center rounded-full bg-[#6a2109] text-white"><MicOff className="!text-sm" /></span></div>
+                            <video
+                                className="size-full object-cover transform-[scaleX(-1)]"
+                                ref={attachLocalVideo}
+                                autoPlay
+                                muted
+                                playsInline
+                            />
+                            {!video && <div className="absolute inset-0 grid place-items-center bg-[#6e3a25]">
+                                <span className="grid size-12 place-items-center rounded-full bg-white/25 text-2xl">
+                                    {(user?.name || 'Y').charAt(0).toUpperCase()}
+                                </span>
+                            </div>}<span className="absolute right-2 top-2 grid size-7 place-items-center rounded-full bg-[#6a2109] text-white"><MicOff className="!text-sm" /></span></div>
                         <p className="truncate px-3 py-2 text-xs font-semibold uppercase text-white">{user?.name || 'You'} <span className="normal-case text-slate-300">(You)</span></p>
                     </section>
 
